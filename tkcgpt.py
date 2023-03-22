@@ -1,52 +1,67 @@
-import requests
-import tkinter as tk
-from tkinter import simpledialog, messagebox
-from dotenv import load_dotenv
-import os
-import datetime
+# ===================================================
+# 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
+# ===================================================
 
-def secret():
-    load_dotenv()
+# =================
+# package importing
+# =================
+import tkinter
+import openai
 
-secret()
+# ==========================
+# root window configurations
+# ==========================
+# root window
+root = tkinter.Tk(screenName=None, baseName=None, className="Tk", useTk=True, sync=False, use=None)
 
-application_window = tk.Tk()
-userInput = simpledialog.askstring("Input", "How can I help you today?",
-                               parent=application_window)
+# root window configurations
+root.title("CZ1993 ChatGPT")
+root.geometry("1280x640")
 
-# OAI Request
-openai_api_ep = "https://api.openai.com/v1/completions"
-api_key = os.getenv('api_key')
+# ========================
+# OpenAI API key inputting
+# ========================
+# OpenAI API key label
+label_key = tkinter.Label(root, text="Key", font=("Calibri", 11))
+label_key.pack(pady=5)
 
-postHeader = {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + api_key
-}
+# OpenAI API key entry
+entry_key = tkinter.Entry(root, width=60, font=("Calibri", 11))
+entry_key.pack(pady=5)
 
-postData = {
-    "model": "text-davinci-003",
-    "prompt": f"{userInput}",
-    "max_tokens": 200,
-    "temperature": 0.5
-}
+# key entered function
+label_key_entered = tkinter.Label(root, fg="blue", text="Key Entered", font=("Calibri", 11))
 
-response = requests.post(openai_api_ep, headers=postHeader, json=postData)
+def key_entered():
+    openai.api_key = entry_key.get()
+    label_key_entered.pack(pady=5)
 
-# Output
-if response.status_code == 200:
-    output = response.json()["choices"][0]["text"]
-    if userInput is not None:
-        messagebox.showinfo("Information",f"{output}")
-    # Logging    
-    timeStamp = "\n" + str(datetime.datetime.now())
-    with open("tkcgpt.log", "a") as file:
-        file.write(timeStamp)
-        file.write(output)
-        file.close()
+# OpenAI API key enter button
+button_key = tkinter.Button(root, text="Enter Key", font=("Calibri", 11), command=lambda: key_entered())
+button_key.pack(pady=5)
 
-else:
+# =========================================
+# inquiry inputting and response outputting
+# =========================================
+# screen to show the dialogue
+# ...
 
-    messagebox.showerror("Error",f"Malformed/Invalid Response \nStatus Code: {str(response.status_code)}")
-    with open("tkcgpt.log", "a") as file:
-        file.write(f"Malformed/Invalid Response \nStatus Code: {str(response.status_code)}")
-        file.close()
+# inquiry entry
+entry_inquiry = tkinter.Entry(root, width=60, font=("Calibri", 11))
+entry_inquiry.pack(side=tkinter.BOTTOM, pady=5)
+
+def inquiry_entered():
+    messages = []
+    while True:
+        inquiry = input("User: ")
+        messages.append({"role": "user", "content": inquiry})
+        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+        response = completion.choices[0].message.content
+        print("ChatGPT: ", response)
+        messages.append({"role": "assistant", "content": response})
+
+# inquiry enter button
+button_inquiry = tkinter.Button(root, text="Enter Inquiry", font=("Calibri", 11), command=lambda: inquiry_entered())
+button_inquiry.pack(side=tkinter.BOTTOM, pady=5)
+
+root.mainloop()
